@@ -23,7 +23,7 @@
   },
   "main": "bitstamp.js",
   "engines": {
-    "node": ">= 0.10"
+    "node": ">= 4"
   },
   "bugs": {
     "url": "https://github.com/leggiero/bitstamp-promise/issues",
