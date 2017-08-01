@@ -5,9 +5,16 @@
   "keywords": [
     "bitstamp",
     "btc",
+    "ltc",
+    "xrp",
+    "usd",
+    "eur",
     "bitcoin",
     "bluebird",
-    "promise"
+    "promise",
+    "rest",
+    "api",
+    "wrapper"
   ],
   "author": {
     "author": "Eduardo Leggiero <esleggiero@gmail.com>"
