@@ -1,5 +1,5 @@
 var querystring = require("querystring");
-var https = require('https');
+var requestPromise = require('request-promise');
 var _ = require('underscore');
 var crypto = require('crypto');
 var Promise = require('bluebird');
@@ -25,53 +25,31 @@ var Bitstamp = function(key, secret, client_id) {
 
 Bitstamp.prototype._request = function(method, path, data, args) {
   var options = {
-    host: 'www.bitstamp.net',
-    path: path,
+    uri: 'https://www.bitstamp.net' + path,
     method: method,
     headers: {
-      'User-Agent': 'Mozilla/4.0 (compatible; Bitstamp node.js client)'
-    }
+      'User-Agent': 'Mozilla/4.0 (compatible; bitstamp-promise Node.js client)'
+    },
+    timeout: 5000,
+    resolveWithFullResponse: true,
   };
 
-  if(method === 'post') {
-    options.headers['Content-Length'] = data.length;
-    options.headers['content-type'] = 'application/x-www-form-urlencoded';
+  if (method === 'post') {
+    options.form = data;
   }
 
-  return new Promise(function(resolve, reject) {
-    var req = https.request(options, function(res) {
-      res.setEncoding('utf8');
-      var buffer = '';
-      res.on('data', function(data) {
-        buffer += data;
-      });
-      res.on('end', function() {
-        if (res.statusCode !== 200) {
-          reject(new Error('Bitstamp error ' + res.statusCode + ': ' + (res.statusCode === 404 ? 'Not found' : buffer)));
-        }
-        try {
-          var json = JSON.parse(buffer);
-        } catch (err) {
-          return reject(err);
-        }
-        resolve(json);
-      });
+  return requestPromise(options)
+    .then(function(res) {
+      return JSON.parse(res.body);
+    }).catch(function(err) {
+      let message;
+      if (err.name === 'StatusCodeError') {
+        message = 'Bitstamp error ' + err.statusCode + ': ' + (err.statusCode === 404 ? 'Not found' : err.response.body);
+      } else {
+        message = 'Bitstamp error: ' + err.message;
+      }
+      throw new Error(message);
     });
-
-    req.on('error', function(err) {
-      reject(err);
-    });
-
-    req.on('socket', function (socket) {
-      socket.setTimeout(5000);
-      socket.on('timeout', function() {
-        req.abort();
-      });
-    });
-
-    req.end(data);
-  });
-
 }
 
 // if you call new Date to fast it will generate
